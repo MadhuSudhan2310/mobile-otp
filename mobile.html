@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile OTP Generator</title>
+    <title>SMS Code Verification</title>
     <style>
         * {
             box-sizing: border-box;
@@ -13,17 +13,17 @@
         body {
             margin: 0;
             padding: 0;
+            background-color: #f5f5f5;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #f5f5f5;
         }
         
-        .otp-container {
+        .verification-container {
             background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             padding: 30px;
             width: 90%;
             max-width: 400px;
@@ -32,213 +32,229 @@
         
         h1 {
             color: #333;
-            margin-bottom: 20px;
             font-size: 24px;
+            margin-bottom: 10px;
         }
         
-        .otp-display {
-            font-size: 32px;
-            letter-spacing: 5px;
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
-            color: #333;
-            font-weight: bold;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-            transition: background-color 0.3s;
-        }
-        
-        button:hover {
-            background-color: #45a049;
-        }
-        
-        .timer {
-            margin-top: 15px;
-            color: #777;
+        p {
+            color: #666;
             font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .code-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+        }
+        
+        .code {
+            width: 50px;
+            height: 60px;
+            font-size: 24px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .code:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+        }
+        
+        .code.filled {
+            border-color: #4CAF50;
+            animation: pulse 0.5s;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         
         .resend {
-            margin-top: 15px;
-            color: #4CAF50;
+            color: #4a90e2;
+            background: none;
+            border: none;
             cursor: pointer;
-            font-weight: 500;
-            display: none;
+            font-size: 14px;
+            margin-top: 20px;
         }
         
-        .resend:hover {
-            text-decoration: underline;
+        .resend:disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .verify-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        
+        .verify-btn:hover {
+            background-color: #3a7bc8;
+        }
+        
+        .verify-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .timer {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="otp-container">
-        <h1>OTP Generator</h1>
-        <div class="otp-display" id="otpDisplay">----</div>
+    <div class="verification-container">
+        <h1>Verify Your Phone</h1>
+        <p>We've sent a verification code to your phone. Please enter it below.</p>
         
-        <div class="input-group">
-            <label for="mobileNumber">Mobile Number</label>
-            <input type="tel" id="mobileNumber" placeholder="Enter your mobile number">
+        <div class="code-container">
+            <input type="text" class="code" maxlength="1" data-index="0" inputmode="numeric" pattern="[0-9]*">
+            <input type="text" class="code" maxlength="1" data-index="1" inputmode="numeric" pattern="[0-9]*">
+            <input type="text" class="code" maxlength="1" data-index="2" inputmode="numeric" pattern="[0-9]*">
+            <input type="text" class="code" maxlength="1" data-index="3" inputmode="numeric" pattern="[0-9]*">
+            <input type="text" class="code" maxlength="1" data-index="4" inputmode="numeric" pattern="[0-9]*">
+            <input type="text" class="code" maxlength="1" data-index="5" inputmode="numeric" pattern="[0-9]*">
         </div>
         
-        <button id="generateBtn">Generate OTP</button>
-        <button id="verifyBtn" style="display: none; margin-top: 10px; background-color: #2196F3;">Verify OTP</button>
+        <button class="verify-btn" disabled>Verify</button>
         
-        <div class="timer" id="timer">OTP will expire in: 02:00</div>
-        <div class="resend" id="resendLink">Resend OTP</div>
-        
-        <div id="message" style="margin-top: 15px; font-weight: 500;"></div>
+        <div class="timer" id="timer">Resend code in 1:00</div>
+        <button class="resend" disabled>Resend Code</button>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const otpDisplay = document.getElementById('otpDisplay');
-            const mobileNumber = document.getElementById('mobileNumber');
-            const generateBtn = document.getElementById('generateBtn');
-            const verifyBtn = document.getElementById('verifyBtn');
-            const timer = document.getElementById('timer');
-            const resendLink = document.getElementById('resendLink');
-            const message = document.getElementById('message');
+            const codes = document.querySelectorAll('.code');
+            const verifyBtn = document.querySelector('.verify-btn');
+            const resendBtn = document.querySelector('.resend');
+            const timerElement = document.getElementById('timer');
             
-            let otp = '';
-            let timerInterval;
-            let timeLeft = 120; // 2 minutes in seconds
+            let currentIndex = 0;
+            let countdown = 60; // 1 minute countdown
             
-            // Generate OTP
-            generateBtn.addEventListener('click', function() {
-                const phone = mobileNumber.value.trim();
+            // Start the countdown timer
+            const timer = setInterval(() => {
+                countdown--;
+                const minutes = Math.floor(countdown / 60);
+                const seconds = countdown % 60;
+                timerElement.textContent = `Resend code in ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
                 
-                if (!phone || !/^\d{10}$/.test(phone)) {
-                    showMessage('Please enter a valid 10-digit mobile number', 'error');
-                    return;
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    timerElement.textContent = '';
+                    resendBtn.disabled = false;
                 }
+            }, 1000);
+            
+            // Focus on the first input initially
+            codes[0].focus();
+            
+            // Handle input events
+            codes.forEach((code, index) => {
+                code.addEventListener('input', (e) => {
+                    if (e.target.value.length === 1) {
+                        e.target.classList.add('filled');
+                        
+                        // Move to next input if available
+                        if (index < codes.length - 1) {
+                            codes[index + 1].focus();
+                            currentIndex = index + 1;
+                        }
+                        
+                        // Check if all codes are filled
+                        checkAllCodesFilled();
+                    }
+                });
                 
-                // Generate 4-digit OTP
-                otp = Math.floor(1000 + Math.random() * 9000).toString();
-                otpDisplay.textContent = otp;
+                // Handle backspace
+                code.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && e.target.value.length === 0 && index > 0) {
+                        codes[index - 1].focus();
+                        currentIndex = index - 1;
+                    }
+                });
                 
-                // Show verify button
-                verifyBtn.style.display = 'block';
-                generateBtn.style.display = 'none';
-                
-                // Start timer
-                startTimer();
-                
-                showMessage(`OTP sent to ${phone}`, 'success');
+                // Handle paste event
+                code.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pasteData = e.clipboardData.getData('text').trim();
+                    if (/^\d+$/.test(pasteData) {
+                        // Fill all inputs with pasted data
+                        for (let i = 0; i < Math.min(pasteData.length, codes.length); i++) {
+                            codes[i].value = pasteData[i];
+                            codes[i].classList.add('filled');
+                        }
+                        
+                        // Focus on the last filled input
+                        const lastFilledIndex = Math.min(pasteData.length - 1, codes.length - 1);
+                        codes[lastFilledIndex].focus();
+                        currentIndex = lastFilledIndex;
+                        
+                        checkAllCodesFilled();
+                    }
+                });
             });
             
-            // Verify OTP
-            verifyBtn.addEventListener('click', function() {
-                const enteredOTP = prompt('Enter the OTP you received:');
-                
-                if (enteredOTP === otp) {
-                    showMessage('OTP verified successfully!', 'success');
-                    resetOTP();
-                } else {
-                    showMessage('Invalid OTP. Please try again.', 'error');
-                }
+            // Check if all codes are filled
+            function checkAllCodesFilled() {
+                const allFilled = Array.from(codes).every(code => code.value.length === 1);
+                verifyBtn.disabled = !allFilled;
+            }
+            
+            // Verify button click handler
+            verifyBtn.addEventListener('click', () => {
+                const verificationCode = Array.from(codes).map(code => code.value).join('');
+                alert(`Verification code submitted: ${verificationCode}`);
+                // Here you would typically send the code to your backend for verification
             });
             
-            // Resend OTP
-            resendLink.addEventListener('click', function() {
-                if (mobileNumber.value.trim() === '') {
-                    showMessage('Please enter your mobile number first', 'error');
-                    return;
-                }
+            // Resend button click handler
+            resendBtn.addEventListener('click', () => {
+                // Reset the UI
+                codes.forEach(code => {
+                    code.value = '';
+                    code.classList.remove('filled');
+                });
+                codes[0].focus();
+                verifyBtn.disabled = true;
                 
-                // Generate new OTP
-                otp = Math.floor(1000 + Math.random() * 9000).toString();
-                otpDisplay.textContent = otp;
+                // Reset the timer
+                countdown = 60;
+                resendBtn.disabled = true;
                 
-                // Reset timer
-                clearInterval(timerInterval);
-                timeLeft = 120;
-                startTimer();
-                
-                // Hide resend link
-                resendLink.style.display = 'none';
-                
-                showMessage(`New OTP sent to ${mobileNumber.value.trim()}`, 'success');
-            });
-            
-            // Timer function
-            function startTimer() {
-                updateTimerDisplay();
-                timer.style.display = 'block';
-                resendLink.style.display = 'none';
-                
-                timerInterval = setInterval(function() {
-                    timeLeft--;
-                    updateTimerDisplay();
+                // Restart the countdown
+                const timer = setInterval(() => {
+                    countdown--;
+                    const minutes = Math.floor(countdown / 60);
+                    const seconds = countdown % 60;
+                    timerElement.textContent = `Resend code in ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
                     
-                    if (timeLeft <= 0) {
-                        clearInterval(timerInterval);
-                        otpDisplay.textContent = '----';
-                        timer.style.display = 'none';
-                        resendLink.style.display = 'block';
-                        otp = ''; // Invalidate OTP
-                        showMessage('OTP expired. Please generate a new one.', 'error');
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        timerElement.textContent = '';
+                        resendBtn.disabled = false;
                     }
                 }, 1000);
-            }
-            
-            function updateTimerDisplay() {
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                timer.textContent = `OTP will expire in: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }
-            
-            function resetOTP() {
-                clearInterval(timerInterval);
-                otp = '';
-                otpDisplay.textContent = '----';
-                timer.style.display = 'none';
-                resendLink.style.display = 'none';
-                verifyBtn.style.display = 'none';
-                generateBtn.style.display = 'block';
-                timeLeft = 120;
-            }
-            
-            function showMessage(text, type) {
-                message.textContent = text;
-                message.style.color = type === 'error' ? '#f44336' : '#4CAF50';
                 
-                // Clear message after 3 seconds
-                setTimeout(function() {
-                    message.textContent = '';
-                }, 3000);
-            }
+                alert('New verification code sent!');
+                // Here you would typically request a new code from your backend
+            });
         });
     </script>
 </body>
