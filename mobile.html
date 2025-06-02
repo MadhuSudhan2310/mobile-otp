@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile OTP Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+        
+        .otp-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .otp-display {
+            font-size: 32px;
+            letter-spacing: 5px;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .timer {
+            margin-top: 15px;
+            color: #777;
+            font-size: 14px;
+        }
+        
+        .resend {
+            margin-top: 15px;
+            color: #4CAF50;
+            cursor: pointer;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .resend:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="otp-container">
+        <h1>OTP Generator</h1>
+        <div class="otp-display" id="otpDisplay">----</div>
+        
+        <div class="input-group">
+            <label for="mobileNumber">Mobile Number</label>
+            <input type="tel" id="mobileNumber" placeholder="Enter your mobile number">
+        </div>
+        
+        <button id="generateBtn">Generate OTP</button>
+        <button id="verifyBtn" style="display: none; margin-top: 10px; background-color: #2196F3;">Verify OTP</button>
+        
+        <div class="timer" id="timer">OTP will expire in: 02:00</div>
+        <div class="resend" id="resendLink">Resend OTP</div>
+        
+        <div id="message" style="margin-top: 15px; font-weight: 500;"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const otpDisplay = document.getElementById('otpDisplay');
+            const mobileNumber = document.getElementById('mobileNumber');
+            const generateBtn = document.getElementById('generateBtn');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const timer = document.getElementById('timer');
+            const resendLink = document.getElementById('resendLink');
+            const message = document.getElementById('message');
+            
+            let otp = '';
+            let timerInterval;
+            let timeLeft = 120; // 2 minutes in seconds
+            
+            // Generate OTP
+            generateBtn.addEventListener('click', function() {
+                const phone = mobileNumber.value.trim();
+                
+                if (!phone || !/^\d{10}$/.test(phone)) {
+                    showMessage('Please enter a valid 10-digit mobile number', 'error');
+                    return;
+                }
+                
+                // Generate 4-digit OTP
+                otp = Math.floor(1000 + Math.random() * 9000).toString();
+                otpDisplay.textContent = otp;
+                
+                // Show verify button
+                verifyBtn.style.display = 'block';
+                generateBtn.style.display = 'none';
+                
+                // Start timer
+                startTimer();
+                
+                showMessage(`OTP sent to ${phone}`, 'success');
+            });
+            
+            // Verify OTP
+            verifyBtn.addEventListener('click', function() {
+                const enteredOTP = prompt('Enter the OTP you received:');
+                
+                if (enteredOTP === otp) {
+                    showMessage('OTP verified successfully!', 'success');
+                    resetOTP();
+                } else {
+                    showMessage('Invalid OTP. Please try again.', 'error');
+                }
+            });
+            
+            // Resend OTP
+            resendLink.addEventListener('click', function() {
+                if (mobileNumber.value.trim() === '') {
+                    showMessage('Please enter your mobile number first', 'error');
+                    return;
+                }
+                
+                // Generate new OTP
+                otp = Math.floor(1000 + Math.random() * 9000).toString();
+                otpDisplay.textContent = otp;
+                
+                // Reset timer
+                clearInterval(timerInterval);
+                timeLeft = 120;
+                startTimer();
+                
+                // Hide resend link
+                resendLink.style.display = 'none';
+                
+                showMessage(`New OTP sent to ${mobileNumber.value.trim()}`, 'success');
+            });
+            
+            // Timer function
+            function startTimer() {
+                updateTimerDisplay();
+                timer.style.display = 'block';
+                resendLink.style.display = 'none';
+                
+                timerInterval = setInterval(function() {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        otpDisplay.textContent = '----';
+                        timer.style.display = 'none';
+                        resendLink.style.display = 'block';
+                        otp = ''; // Invalidate OTP
+                        showMessage('OTP expired. Please generate a new one.', 'error');
+                    }
+                }, 1000);
+            }
+            
+            function updateTimerDisplay() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timer.textContent = `OTP will expire in: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            function resetOTP() {
+                clearInterval(timerInterval);
+                otp = '';
+                otpDisplay.textContent = '----';
+                timer.style.display = 'none';
+                resendLink.style.display = 'none';
+                verifyBtn.style.display = 'none';
+                generateBtn.style.display = 'block';
+                timeLeft = 120;
+            }
+            
+            function showMessage(text, type) {
+                message.textContent = text;
+                message.style.color = type === 'error' ? '#f44336' : '#4CAF50';
+                
+                // Clear message after 3 seconds
+                setTimeout(function() {
+                    message.textContent = '';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
